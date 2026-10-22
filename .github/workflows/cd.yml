@@ -85,7 +85,7 @@ jobs:
             type=sha
             type=ref,event=tag
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         if: steps.files.outputs.ready == 'true'
         with:
           context: .
