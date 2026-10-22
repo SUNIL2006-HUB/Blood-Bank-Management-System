@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Blood Bank{% endblock %} · Blood Bank Management</title>
+  <style>
+    body{font-family:system-ui,sans-serif;margin:0;color:#222;background:#fafafa}
+    header{background:#b3202a;color:#fff;padding:.8rem 1.5rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+    header a{color:#fff;text-decoration:none;font-weight:500}
+    header .brand{font-weight:700;font-size:1.1rem;margin-right:auto}
+    main{max-width:760px;margin:1.5rem auto;padding:0 1rem}
+    label{display:block;margin:.8rem 0 .2rem;font-weight:600}
+    input,select{width:100%;padding:.5rem;font-size:1rem;box-sizing:border-box}
+    button{margin-top:1rem;padding:.6rem 1.2rem;background:#b3202a;color:#fff;border:0;font-size:1rem;cursor:pointer}
+    table{border-collapse:collapse;width:100%}
+    th,td{border-bottom:1px solid #ddd;padding:.5rem;text-align:left}
+    .flash{padding:.7rem 1rem;margin-bottom:1rem;border-left:4px solid}
+    .flash.success{background:#e7f6ea;border-color:#2e8b47}
+    .flash.error{background:#fdeaea;border-color:#b3202a}
+    .field-error{color:#b3202a;font-size:.9rem;margin-top:.2rem}
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="{{ url_for('index') }}">Blood Bank</a>
+  <a href="{{ url_for('donors.register') }}">Register donor</a>
+  <a href="{{ url_for('donors.list_donors') }}">Donors</a>
+</header>
+<main>
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ category }}">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

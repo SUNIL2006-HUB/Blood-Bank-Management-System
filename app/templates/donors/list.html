@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Donors{% endblock %}
+{% block content %}
+<h1>Registered donors</h1>
+{% if donors %}
+<table>
+  <tr><th>ID</th><th>Name</th><th>Age</th><th>Blood group</th><th>Phone</th></tr>
+  {% for d in donors %}
+  <tr><td>{{ d.id }}</td><td>{{ d.name }}</td><td>{{ d.age }}</td><td>{{ d.blood_group }}</td><td>{{ d.phone }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No donors registered yet.</p>
+{% endif %}
+{% endblock %}
