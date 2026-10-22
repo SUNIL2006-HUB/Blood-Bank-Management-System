@@ -26,6 +26,8 @@
   <a class="brand" href="{{ url_for('index') }}">Blood Bank</a>
   <a href="{{ url_for('donors.register') }}">Register donor</a>
   <a href="{{ url_for('donors.list_donors') }}">Donors</a>
+  <a href="{{ url_for('donations.record') }}">Record donation</a>
+  <a href="{{ url_for('donations.list_donations') }}">Donations</a>
 </header>
 <main>
   {% for category, message in get_flashed_messages(with_categories=true) %}

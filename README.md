@@ -22,3 +22,4 @@ python -m pytest
 | PBI | Feature | Routes |
 | --- | --- | --- |
 | PBI-01 | Donor Registration | `/donors/register`, `/donors` |
+| PBI-02 | Donation Recording (+ automatic stock increase) | `/donations/new`, `/donations` |
