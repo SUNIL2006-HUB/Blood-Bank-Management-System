@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Record donation{% endblock %}
+{% macro err(field) %}{% if errors.get(field) %}<div class="field-error">{{ errors[field] }}</div>{% endif %}{% endmacro %}
+{% block content %}
+<h1>Record donation</h1>
+{% if not donors %}
+  <p>No donors registered yet. <a href="{{ url_for('donors.register') }}">Register a donor</a> first.</p>
+{% endif %}
+<form method="post" novalidate>
+  <label for="donor_id">Donor</label>
+  <select id="donor_id" name="donor_id">
+    <option value="">-- select donor --</option>
+    {% for d in donors %}
+      <option value="{{ d.id }}" {{ 'selected' if form.get('donor_id') == d.id|string }}>#{{ d.id }} – {{ d.name }} ({{ d.blood_group }})</option>
+    {% endfor %}
+  </select>
+  {{ err('donor_id') }}
+  <div class="field-error" style="color:#444">
+    {% if errors.get('donor_id') %}Donor not found? {% endif %}<a href="{{ url_for('donors.register') }}">Register the donor first</a>.
+  </div>
+
+  <label for="blood_group">Blood group</label>
+  <select id="blood_group" name="blood_group">
+    <option value="">-- select --</option>
+    {% for g in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
+      <option value="{{ g }}" {{ 'selected' if form.get('blood_group') == g }}>{{ g }}</option>
+    {% endfor %}
+  </select>
+  {{ err('blood_group') }}
+
+  <label for="quantity_ml">Quantity (ml, max 500)</label>
+  <input id="quantity_ml" name="quantity_ml" type="number" value="{{ form.get('quantity_ml', '') }}">
+  {{ err('quantity_ml') }}
+
+  <label for="donation_date">Date</label>
+  <input id="donation_date" name="donation_date" type="date" max="{{ today }}" value="{{ form.get('donation_date', today) }}">
+  {{ err('donation_date') }}
+
+  <button type="submit">Record donation</button>
+</form>
+{% endblock %}
