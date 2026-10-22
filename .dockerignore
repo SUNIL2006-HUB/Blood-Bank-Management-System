@@ -1,0 +1,8 @@
+.git
+.github
+tests
+Documents
+instance
+*.db
+__pycache__
+.env
