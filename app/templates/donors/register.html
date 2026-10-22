@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Register donor{% endblock %}
+{% macro err(field) %}{% if errors.get(field) %}<div class="field-error">{{ errors[field] }}</div>{% endif %}{% endmacro %}
+{% block content %}
+<h1>Register donor</h1>
+<form method="post" novalidate>
+  <label for="name">Name</label>
+  <input id="name" name="name" value="{{ form.get('name', '') }}" maxlength="100">
+  {{ err('name') }}
+
+  <label for="age">Age</label>
+  <input id="age" name="age" type="number" value="{{ form.get('age', '') }}">
+  {{ err('age') }}
+
+  <label for="blood_group">Blood group</label>
+  <select id="blood_group" name="blood_group">
+    <option value="">-- select --</option>
+    {% for g in blood_groups %}
+      <option value="{{ g }}" {{ 'selected' if form.get('blood_group') == g }}>{{ g }}</option>
+    {% endfor %}
+  </select>
+  {{ err('blood_group') }}
+
+  <label for="phone">Phone (10 digits)</label>
+  <input id="phone" name="phone" value="{{ form.get('phone', '') }}" inputmode="numeric">
+  {{ err('phone') }}
+
+  <button type="submit">Register donor</button>
+</form>
+{% endblock %}
