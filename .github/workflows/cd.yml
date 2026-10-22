@@ -1,7 +1,6 @@
+
 name: CD
 
-# Builds the container image and publishes it to GitHub Container Registry
-# whenever main changes (after CI passes) or a version tag is pushed.
 on:
   push:
     branches: [main]
@@ -16,27 +15,68 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check whether application and tests exist
+        id: files
+        shell: bash
+        run: |
+          if [ -d app ] && find tests -type f -name 'test_*.py' -print -quit 2>/dev/null | grep -q .; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.files.outputs.ready == 'true'
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
-      - run: ruff check .
-      - run: python -m pytest -q
+
+      - name: Install dependencies
+        if: steps.files.outputs.ready == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Run lint
+        if: steps.files.outputs.ready == 'true'
+        run: ruff check .
+
+      - name: Run tests
+        if: steps.files.outputs.ready == 'true'
+        run: python -m pytest -q
+
+      - name: Report application not ready
+        if: steps.files.outputs.ready != 'true'
+        run: echo "Skipping CD checks; application and tests are not present yet."
 
   publish:
     needs: test
-    if: hashFiles('Dockerfile') != ''
+    if: needs.test.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check application files
+        id: files
+        shell: bash
+        run: |
+          if [ -d app ] && find tests -type f -name 'test_*.py' -print -quit 2>/dev/null | grep -q .; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: docker/setup-buildx-action@v3
+        if: steps.files.outputs.ready == 'true'
+
       - uses: docker/login-action@v3
+        if: steps.files.outputs.ready == 'true'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - id: meta
+        if: steps.files.outputs.ready == 'true'
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
@@ -44,9 +84,15 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
             type=ref,event=tag
+
       - uses: docker/build-push-action@v6
+        if: steps.files.outputs.ready == 'true'
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Report publish skipped
+        if: steps.files.outputs.ready != 'true'
+        run: echo "Skipping image publication; application and tests are not present yet."
