@@ -19,10 +19,11 @@ def create_app(test_config=None):
     db.init_db(app.config["DATABASE"])
     app.teardown_appcontext(db.close_db)
 
-    from .routes import donations, donors
+    from .routes import availability, donations, donors
 
     app.register_blueprint(donors.bp)
     app.register_blueprint(donations.bp)
+    app.register_blueprint(availability.bp)
 
     @app.get("/")
     def index():

@@ -23,3 +23,4 @@ python -m pytest
 | --- | --- | --- |
 | PBI-01 | Donor Registration | `/donors/register`, `/donors` |
 | PBI-02 | Donation Recording (+ automatic stock increase) | `/donations/new`, `/donations` |
+| PBI-03 | View/Search Blood Availability | `/availability`, `/availability?blood_group=O+` |
