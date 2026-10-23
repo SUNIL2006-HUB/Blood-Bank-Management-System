@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Blood availability{% endblock %}
+{% block content %}
+<h1>Blood availability</h1>
+<form method="get">
+  <label for="blood_group">Search by blood group (leave blank for all)</label>
+  <select id="blood_group" name="blood_group">
+    <option value="">All blood groups</option>
+    {% for g in blood_groups %}
+      <option value="{{ g }}" {{ 'selected' if selected == g }}>{{ g }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Search</button>
+</form>
+
+{% if errors.get('blood_group') %}
+  <div class="flash error">{{ errors['blood_group'] }}</div>
+{% elif no_stock %}
+  <div class="flash error">No stock available for {{ selected }}</div>
+{% else %}
+  <table style="margin-top:1.5rem">
+    <tr><th>Blood group</th><th>Available (ml)</th></tr>
+    {% for r in rows %}
+    <tr><td>{{ r.blood_group }}</td><td>{{ r.quantity_ml }}</td></tr>
+    {% endfor %}
+  </table>
+{% endif %}
+{% endblock %}

@@ -14,3 +14,7 @@ def add(db, blood_group, quantity_ml):
         (blood_group, quantity_ml),
     )
     return get(db, blood_group)["quantity_ml"]
+
+
+def list_all(db):
+    return db.execute("SELECT * FROM blood_stock ORDER BY blood_group").fetchall()
