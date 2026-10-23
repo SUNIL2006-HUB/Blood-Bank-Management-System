@@ -21,3 +21,11 @@ CREATE TABLE IF NOT EXISTS donation (
     donation_date TEXT    NOT NULL,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS blood_issue (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    blood_group TEXT    NOT NULL,
+    quantity_ml INTEGER NOT NULL CHECK (quantity_ml > 0),
+    recipient   TEXT,
+    issued_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
