@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Issue blood{% endblock %}
+{% macro err(field) %}{% if errors.get(field) %}<div class="field-error">{{ errors[field] }}</div>{% endif %}{% endmacro %}
+{% block content %}
+<h1>Issue blood</h1>
+<form method="post" novalidate>
+  <label for="blood_group">Blood group</label>
+  <select id="blood_group" name="blood_group">
+    <option value="">-- select --</option>
+    {% for g in blood_groups %}
+      <option value="{{ g }}" {{ 'selected' if form.get('blood_group') == g }}>{{ g }}</option>
+    {% endfor %}
+  </select>
+  {{ err('blood_group') }}
+
+  <label for="quantity_ml">Quantity (ml)</label>
+  <input id="quantity_ml" name="quantity_ml" type="number" value="{{ form.get('quantity_ml', '') }}">
+  {{ err('quantity_ml') }}
+
+  <label for="recipient">Recipient / hospital (optional)</label>
+  <input id="recipient" name="recipient" maxlength="100" value="{{ form.get('recipient', '') }}">
+  {{ err('recipient') }}
+
+  <button type="submit">Issue blood</button>
+</form>
+{% endblock %}

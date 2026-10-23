@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Issues{% endblock %}
+{% block content %}
+<h1>Recent blood issues</h1>
+{% if issues %}
+<table>
+  <tr><th>ID</th><th>Blood group</th><th>Quantity (ml)</th><th>Recipient / hospital</th><th>Issued at</th></tr>
+  {% for i in issues %}
+  <tr><td>{{ i.id }}</td><td>{{ i.blood_group }}</td><td>{{ i.quantity_ml }}</td><td>{{ i.recipient or '—' }}</td><td>{{ i.issued_at }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}<p>No blood issued yet.</p>{% endif %}
+{% endblock %}
