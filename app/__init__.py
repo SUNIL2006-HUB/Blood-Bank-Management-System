@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, render_template
@@ -29,6 +30,25 @@ def create_app(test_config=None):
     @app.get("/")
     def index():
         return render_template("index.html")
+
+    @app.context_processor
+    def inject_operating_hours():
+        from .constants import OPERATING_CLOSE, OPERATING_OPEN
+
+        now = datetime.now().time()
+        return {
+            "is_open": OPERATING_OPEN <= now < OPERATING_CLOSE,
+            "open_time": OPERATING_OPEN.strftime("%I:%M %p").lstrip("0"),
+            "close_time": OPERATING_CLOSE.strftime("%I:%M %p").lstrip("0"),
+        }
+
+    @app.errorhandler(404)
+    def not_found(_e):
+        return render_template(
+            "error.html",
+            heading="Page not found",
+            message="We could not find that page. Please use the menu above.",
+        ), 404
 
     @app.errorhandler(500)
     def server_error(_e):
