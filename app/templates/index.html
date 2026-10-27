@@ -1,5 +1,51 @@
 {% extends "base.html" %}
+{% block title %}Home{% endblock %}
 {% block content %}
-<h1>Blood Bank Management System</h1>
-<p>Use the navigation above to manage donors.</p>
+<style>
+  .hero{background:#fff;border:1px solid #e3e3e3;border-left:6px solid #b3202a;border-radius:6px;padding:1.5rem 1.5rem 1.2rem;margin-bottom:1.5rem}
+  .hero h1{margin:0 0 .4rem;font-size:1.8rem}
+  .hero p{margin:0;color:#555}
+  .section-title{font-size:1.1rem;margin:1.8rem 0 .2rem;color:#333}
+  .steps{list-style:none;margin:.8rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+  .steps li{background:#fff;border:1px solid #e3e3e3;border-radius:6px;padding:1rem}
+  .steps .num{display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;border-radius:50%;background:#b3202a;color:#fff;font-weight:700;margin-bottom:.5rem}
+  .steps strong{display:block;margin-bottom:.2rem}
+  .steps span{font-size:.9rem;color:#555}
+</style>
+
+<section class="hero">
+  <h1>Blood Bank Management System</h1>
+  <p>Record donations and check blood stock quickly, in just a few clicks.</p>
+</section>
+
+<h2 class="section-title">Main tasks</h2>
+<div class="task-grid">
+  <a class="task-card primary" href="{{ url_for('donations.record') }}">
+    <strong>Record donation</strong>
+    <span>Add a new blood donation to the stock.</span>
+  </a>
+  <a class="task-card primary" href="{{ url_for('availability.view') }}">
+    <strong>Check availability</strong>
+    <span>See how much blood is in stock for each group.</span>
+  </a>
+</div>
+
+<h2 class="section-title">How to record a donation</h2>
+<ol class="steps">
+  <li>
+    <div class="num">1</div>
+    <strong>Register the donor</strong>
+    <span>Only needed the first time a donor comes in.</span>
+  </li>
+  <li>
+    <div class="num">2</div>
+    <strong>Record the donation</strong>
+    <span>Choose the donor, blood group, quantity and date.</span>
+  </li>
+  <li>
+    <div class="num">3</div>
+    <strong>Check availability</strong>
+    <span>Confirm the stock has gone up.</span>
+  </li>
+</ol>
 {% endblock %}

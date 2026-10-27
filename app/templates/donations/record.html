@@ -1,26 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Record donation{% endblock %}
-{% macro err(field) %}{% if errors.get(field) %}<div class="field-error">{{ errors[field] }}</div>{% endif %}{% endmacro %}
+{% macro err(field) %}{% if errors.get(field) %}<div class="field-error" id="{{ field }}-error">{{ errors[field] }}</div>{% endif %}{% endmacro %}
 {% block content %}
 <h1>Record donation</h1>
-{% if not donors %}
-  <p>No donors registered yet. <a href="{{ url_for('donors.register') }}">Register a donor</a> first.</p>
+<p class="hint">Fill in the four fields below, then press <strong>Record donation</strong>. All fields are required.</p>
+
+{% if errors %}
+  <div class="flash error" role="alert">
+    Donation not saved. Please fix the {{ errors|length }} problem{{ 's' if errors|length > 1 }} shown in red below, then try again.
+  </div>
 {% endif %}
+
+{% if not donors %}
+  <div class="flash error" role="alert">
+    No donors are registered yet. <a href="{{ url_for('donors.register') }}">Register a donor</a> before recording a donation.
+  </div>
+{% endif %}
+
 <form method="post" novalidate>
   <label for="donor_id">Donor</label>
-  <select id="donor_id" name="donor_id">
+  <select id="donor_id" name="donor_id" required
+          {% if errors.get('donor_id') %}aria-invalid="true" aria-describedby="donor_id-error"{% endif %}>
     <option value="">-- select donor --</option>
     {% for d in donors %}
       <option value="{{ d.id }}" {{ 'selected' if form.get('donor_id') == d.id|string }}>#{{ d.id }} – {{ d.name }} ({{ d.blood_group }})</option>
     {% endfor %}
   </select>
   {{ err('donor_id') }}
-  <div class="field-error" style="color:#444">
-    {% if errors.get('donor_id') %}Donor not found? {% endif %}<a href="{{ url_for('donors.register') }}">Register the donor first</a>.
+  <div class="hint">
+    {% if errors.get('donor_id') %}Donor not found? {% endif %}Donor not in the list? <a href="{{ url_for('donors.register') }}">Register the donor first</a>.
   </div>
 
   <label for="blood_group">Blood group</label>
-  <select id="blood_group" name="blood_group">
+  <select id="blood_group" name="blood_group" required
+          {% if errors.get('blood_group') %}aria-invalid="true" aria-describedby="blood_group-error"{% endif %}>
     <option value="">-- select --</option>
     {% for g in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
       <option value="{{ g }}" {{ 'selected' if form.get('blood_group') == g }}>{{ g }}</option>
@@ -29,13 +42,17 @@
   {{ err('blood_group') }}
 
   <label for="quantity_ml">Quantity (ml, max 500)</label>
-  <input id="quantity_ml" name="quantity_ml" type="number" value="{{ form.get('quantity_ml', '') }}">
+  <input id="quantity_ml" name="quantity_ml" type="number" min="1" max="500" inputmode="numeric" required
+         placeholder="e.g. 450" value="{{ form.get('quantity_ml', '') }}"
+         {% if errors.get('quantity_ml') %}aria-invalid="true" aria-describedby="quantity_ml-error"{% endif %}>
   {{ err('quantity_ml') }}
 
-  <label for="donation_date">Date</label>
-  <input id="donation_date" name="donation_date" type="date" max="{{ today }}" value="{{ form.get('donation_date', today) }}">
+  <label for="donation_date">Date of donation</label>
+  <input id="donation_date" name="donation_date" type="date" max="{{ today }}" required
+         value="{{ form.get('donation_date', today) }}"
+         {% if errors.get('donation_date') %}aria-invalid="true" aria-describedby="donation_date-error"{% endif %}>
   {{ err('donation_date') }}
 
-  <button type="submit">Record donation</button>
+  <button type="submit" {% if not donors %}disabled{% endif %}>Record donation</button>
 </form>
 {% endblock %}

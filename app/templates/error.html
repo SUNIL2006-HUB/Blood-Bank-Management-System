@@ -1,2 +1,14 @@
 {% extends "base.html" %}
-{% block content %}<h1>Something went wrong</h1><p>Please try again later.</p>{% endblock %}
+{% block title %}Something went wrong{% endblock %}
+{% block content %}
+<h1>{{ heading or "Something went wrong" }}</h1>
+<div class="flash error" role="alert">
+  {{ message or "Sorry, we could not complete that action. Nothing was saved or changed." }}
+</div>
+<p>You can:</p>
+<ul>
+  <li>Go back and try again.</li>
+  <li>Return to the <a href="{{ url_for('index') }}">home page</a>.</li>
+  <li>If the problem keeps happening, tell your supervisor or the system administrator.</li>
+</ul>
+{% endblock %}

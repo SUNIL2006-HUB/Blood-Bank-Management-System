@@ -7,33 +7,65 @@
   <style>
     body{font-family:system-ui,sans-serif;margin:0;color:#222;background:#fafafa}
     header{background:#b3202a;color:#fff;padding:.8rem 1.5rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
-    header a{color:#fff;text-decoration:none;font-weight:500}
-    header .brand{font-weight:700;font-size:1.1rem;margin-right:auto}
+    header a{color:#fff;text-decoration:none;font-weight:500;padding:.2rem 0;border-bottom:2px solid transparent}
+    header a:hover{border-bottom-color:#ffd6d9}
+    header a[aria-current="page"]{border-bottom-color:#fff;font-weight:700}
+    header .brand{font-weight:700;font-size:1.1rem;margin-right:auto;border-bottom:0}
+    .hours{padding:.4rem 1.5rem;font-size:.9rem;font-weight:600}
+    .hours.open{background:#e7f6ea;color:#1f6b35}
+    .hours.closed{background:#fff3cd;color:#7a5b00}
     main{max-width:760px;margin:1.5rem auto;padding:0 1rem}
     label{display:block;margin:.8rem 0 .2rem;font-weight:600}
     input,select{width:100%;padding:.5rem;font-size:1rem;box-sizing:border-box}
-    button{margin-top:1rem;padding:.6rem 1.2rem;background:#b3202a;color:#fff;border:0;font-size:1rem;cursor:pointer}
+    button{margin-top:1rem;padding:.6rem 1.2rem;background:#b3202a;color:#fff;border:0;font-size:1rem;cursor:pointer;min-height:44px}
+    button:hover{background:#8f1922}
+    button:disabled{background:#999;cursor:not-allowed}
+    a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1a5fb4;outline-offset:2px}
     table{border-collapse:collapse;width:100%}
     th,td{border-bottom:1px solid #ddd;padding:.5rem;text-align:left}
     .flash{padding:.7rem 1rem;margin-bottom:1rem;border-left:4px solid}
     .flash.success{background:#e7f6ea;border-color:#2e8b47}
     .flash.error{background:#fdeaea;border-color:#b3202a}
+    .flash.warning{background:#fff3cd;border-color:#c79100}
     .field-error{color:#b3202a;font-size:.9rem;margin-top:.2rem}
+    .hint{color:#555;font-size:.9rem;margin:.2rem 0 .6rem}
+    .out-of-stock{color:#b3202a;font-weight:600;font-size:.85rem;margin-left:.4rem}
+    .skip-link{position:absolute;left:-999px;top:0;background:#fff;color:#000;padding:.5rem 1rem}
+    .skip-link:focus{left:0;z-index:10}
+    .task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem}
+    .task-card{display:flex;flex-direction:column;gap:.3rem;padding:1rem;background:#fff;border:1px solid #ddd;border-radius:6px;color:#222;text-decoration:none;min-height:44px}
+    .task-card:hover{border-color:#b3202a}
+    .task-card strong{font-size:1.05rem}
+    .task-card span{font-size:.9rem;color:#555}
+    .task-card.primary{background:#b3202a;border-color:#b3202a;color:#fff}
+    .task-card.primary span{color:#ffe3e5}
+    .task-card.primary:hover{background:#8f1922}
+    @media (max-width:600px){
+      header{gap:.8rem;padding:.8rem 1rem}
+      table{display:block;overflow-x:auto}
+    }
   </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <header>
   <a class="brand" href="{{ url_for('index') }}">Blood Bank</a>
-  <a href="{{ url_for('donors.register') }}">Register donor</a>
-  <a href="{{ url_for('donors.list_donors') }}">Donors</a>
-  <a href="{{ url_for('donations.record') }}">Record donation</a>
-  <a href="{{ url_for('donations.list_donations') }}">Donations</a>
-  <a href="{{ url_for('availability.view') }}">Availability</a>
-  <a href="{{ url_for('issues.issue') }}">Issue blood</a>
+  <nav style="display:contents" aria-label="Main navigation">
+    <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Home</a>
+    <a href="{{ url_for('donors.register') }}" {% if request.endpoint == 'donors.register' %}aria-current="page"{% endif %}>Register donor</a>
+    <a href="{{ url_for('donors.list_donors') }}" {% if request.endpoint == 'donors.list_donors' %}aria-current="page"{% endif %}>Donors</a>
+    <a href="{{ url_for('donations.record') }}" {% if request.endpoint == 'donations.record' %}aria-current="page"{% endif %}>Record donation</a>
+    <a href="{{ url_for('donations.list_donations') }}" {% if request.endpoint == 'donations.list_donations' %}aria-current="page"{% endif %}>Donations</a>
+    <a href="{{ url_for('availability.view') }}" {% if request.endpoint == 'availability.view' %}aria-current="page"{% endif %}>Availability</a>
+    <a href="{{ url_for('issues.issue') }}" {% if request.endpoint == 'issues.issue' %}aria-current="page"{% endif %}>Issue blood</a>
+  </nav>
 </header>
-<main>
+<div class="hours {{ 'open' if is_open else 'closed' }}" role="status">
+  {% if is_open %}Open now{% else %}Closed now{% endif %} · Operating hours: {{ open_time }} to {{ close_time }}
+</div>
+<main id="main">
   {% for category, message in get_flashed_messages(with_categories=true) %}
-    <div class="flash {{ category }}">{{ message }}</div>
+    <div class="flash {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>
   {% endfor %}
   {% block content %}{% endblock %}
 </main>

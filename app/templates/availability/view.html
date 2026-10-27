@@ -2,26 +2,37 @@
 {% block title %}Blood availability{% endblock %}
 {% block content %}
 <h1>Blood availability</h1>
+<p class="hint">Choose a blood group and press <strong>Show availability</strong>, or leave it on "All blood groups" to see everything.</p>
+
 <form method="get">
-  <label for="blood_group">Search by blood group (leave blank for all)</label>
-  <select id="blood_group" name="blood_group">
+  <label for="blood_group">Blood group</label>
+  <select id="blood_group" name="blood_group"
+          {% if errors.get('blood_group') %}aria-invalid="true"{% endif %}>
     <option value="">All blood groups</option>
     {% for g in blood_groups %}
       <option value="{{ g }}" {{ 'selected' if selected == g }}>{{ g }}</option>
     {% endfor %}
   </select>
-  <button type="submit">Search</button>
+  <button type="submit">Show availability</button>
 </form>
 
 {% if errors.get('blood_group') %}
-  <div class="flash error">{{ errors['blood_group'] }}</div>
+  <div class="flash error" role="alert">{{ errors['blood_group'] }}</div>
 {% elif no_stock %}
-  <div class="flash error">No stock available for {{ selected }}</div>
+  <div class="flash warning" role="status">
+    No stock available for {{ selected }}. Check again after the next donation is recorded, or
+    <a href="{{ url_for('availability.view') }}">view all blood groups</a>.
+  </div>
+{% elif not rows %}
+  <div class="flash warning" role="status">No availability information to show yet.</div>
 {% else %}
-  <table style="margin-top:1.5rem">
-    <tr><th>Blood group</th><th>Available (ml)</th></tr>
+    <table style="margin-top:1.5rem">
+    <caption class="hint" style="text-align:left">
+      {% if selected %}Showing stock for {{ selected }}{% else %}Showing stock for all blood groups{% endif %}
+    </caption>
+    <tr><th scope="col">Blood group</th><th scope="col">Available (ml)</th></tr>
     {% for r in rows %}
-    <tr><td>{{ r.blood_group }}</td><td>{{ r.quantity_ml }}</td></tr>
+    <tr><td>{{ r.blood_group }}</td><td>{{ r.quantity_ml }}{% if r.quantity_ml == 0 %} <span class="out-of-stock">Out of stock</span>{% endif %}</td></tr>
     {% endfor %}
   </table>
 {% endif %}
