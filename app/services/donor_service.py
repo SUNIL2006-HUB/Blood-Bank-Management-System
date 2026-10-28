@@ -5,7 +5,7 @@ from ..constants import BLOOD_GROUPS, MAX_DONOR_AGE, MIN_DONOR_AGE
 from ..errors import ServiceError, ValidationError
 from ..repositories import donor_repository
 
-PHONE_RE = re.compile(r"\d{10}")
+PHONE_RE = re.compile(r"[0-9]{10}")
 
 
 def validate_donor(form):

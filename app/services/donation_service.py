@@ -11,7 +11,7 @@ def _validate(db, form):
     errors, donor = {}, None
 
     raw_id = (form.get("donor_id") or "").strip()
-    if not raw_id.isdigit():
+    if not (raw_id.isascii() and raw_id.isdigit()):
         errors["donor_id"] = "Donor not found"
     else:
         donor = donor_repository.get(db, int(raw_id))
