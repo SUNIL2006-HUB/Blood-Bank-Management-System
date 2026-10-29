@@ -12,6 +12,8 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-me"),
         DATABASE=os.environ.get("DATABASE_PATH", str(Path(app.instance_path) / "bloodbank.db")),
+        MANAGEMENT_USERNAME=os.environ.get("MANAGEMENT_USERNAME"),
+        MANAGEMENT_PASSWORD=os.environ.get("MANAGEMENT_PASSWORD"),
     )
     if test_config:
         app.config.update(test_config)
@@ -20,12 +22,13 @@ def create_app(test_config=None):
     db.init_db(app.config["DATABASE"])
     app.teardown_appcontext(db.close_db)
 
-    from .routes import availability, donations, donors, issues
+    from .routes import availability, donations, donors, issues, reports
 
     app.register_blueprint(donors.bp)
     app.register_blueprint(donations.bp)
     app.register_blueprint(availability.bp)
     app.register_blueprint(issues.bp)
+    app.register_blueprint(reports.bp)
 
     @app.get("/")
     def index():
@@ -49,6 +52,17 @@ def create_app(test_config=None):
             heading="Page not found",
             message="We could not find that page. Please use the menu above.",
         ), 404
+
+    @app.errorhandler(403)
+    def forbidden(_e):
+        return render_template(
+            "error.html",
+            heading="Access denied",
+            message=(
+                "Only blood bank management can generate reports. "
+                "Sign in with a management account to continue."
+            ),
+        ), 403
 
     @app.errorhandler(500)
     def server_error(_e):
