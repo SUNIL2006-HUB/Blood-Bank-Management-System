@@ -58,7 +58,10 @@ def create_app(test_config=None):
         return render_template(
             "error.html",
             heading="Access denied",
-            message="Only blood bank management can generate reports. Sign in with a management account to continue.",
+            message=(
+                "Only blood bank management can generate reports. "
+                "Sign in with a management account to continue."
+            ),
         ), 403
 
     @app.errorhandler(500)
