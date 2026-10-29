@@ -58,6 +58,11 @@
     <a href="{{ url_for('donations.list_donations') }}" {% if request.endpoint == 'donations.list_donations' %}aria-current="page"{% endif %}>Donations</a>
     <a href="{{ url_for('availability.view') }}" {% if request.endpoint == 'availability.view' %}aria-current="page"{% endif %}>Availability</a>
     <a href="{{ url_for('issues.issue') }}" {% if request.endpoint == 'issues.issue' %}aria-current="page"{% endif %}>Issue blood</a>
+    {% if session.get('role') == 'management' %}
+      <a href="{{ url_for('reports.generate') }}" {% if request.endpoint == 'reports.generate' %}aria-current="page"{% endif %}>Reports</a>
+    {% else %}
+      <a href="{{ url_for('reports.login') }}" {% if request.endpoint == 'reports.login' %}aria-current="page"{% endif %}>Management sign in</a>
+    {% endif %}
   </nav>
 </header>
 <div class="hours {{ 'open' if is_open else 'closed' }}" role="status">
