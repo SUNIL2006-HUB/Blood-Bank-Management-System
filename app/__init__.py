@@ -1,3 +1,4 @@
+
 import os
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +17,8 @@ def create_app(test_config=None):
             "DATABASE_PATH",
             str(Path(app.instance_path) / "bloodbank.db"),
         ),
+        MANAGEMENT_USERNAME=os.environ.get("MANAGEMENT_USERNAME"),
+        MANAGEMENT_PASSWORD=os.environ.get("MANAGEMENT_PASSWORD"),
     )
 
     if test_config:
@@ -29,8 +32,10 @@ def create_app(test_config=None):
     db.init_db(app.config["DATABASE"])
     app.teardown_appcontext(db.close_db)
 
+    # Import the existing route blueprints.
     from .routes import auth, availability, donations, donors, issues
 
+    # Register the blueprints.
     app.register_blueprint(donors.bp)
     app.register_blueprint(donations.bp)
     app.register_blueprint(availability.bp)
@@ -70,7 +75,7 @@ def create_app(test_config=None):
 
     @app.errorhandler(500)
     def server_error(_e):
-        # Generic message only; no stack traces or database details (SEC-12).
+        # Do not expose stack traces or database details.
         return render_template("error.html"), 500
 
     return app
