@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied{% endblock %}
+
+{% block content %}
+<section aria-labelledby="access-denied-heading">
+    <h1 id="access-denied-heading">403 - Access Denied</h1>
+
+    <p>
+        Sorry, you do not have permission to access this page.
+    </p>
+
+    <p>
+        Please contact the system administrator if you believe
+        you should have access.
+    </p>
+
+    <a href="{{ url_for('index') }}">Return to Home</a>
+</section>
+{% endblock %}
