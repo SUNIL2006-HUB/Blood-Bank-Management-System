@@ -9,14 +9,13 @@ from werkzeug.security import generate_password_hash
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from app import create_app
-from app.db import get_db
-
-
 ALLOWED_ROLES = {"staff", "recipient", "management"}
 
 
 def main():
+    from app import create_app
+    from app.db import get_db
+
     username = input("Enter username: ").strip()
 
     if not username:
@@ -58,9 +57,12 @@ def main():
                     role,
                 ),
             )
+            db.commit()
+
         except sqlite3.IntegrityError:
             print("Error: That username already exists.")
             return 1
+
         except sqlite3.Error:
             print("Error: Unable to create the user account.")
             return 1
