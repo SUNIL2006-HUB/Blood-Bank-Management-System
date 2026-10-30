@@ -31,10 +31,8 @@ def create_app(test_config=None):
     db.init_db(app.config["DATABASE"])
     app.teardown_appcontext(db.close_db)
 
-    # Import available route blueprints.
     from .routes import auth, availability, donations, donors, issues
 
-    # Register blueprints.
     app.register_blueprint(donors.bp)
     app.register_blueprint(donations.bp)
     app.register_blueprint(availability.bp)
@@ -74,7 +72,6 @@ def create_app(test_config=None):
 
     @app.errorhandler(500)
     def server_error(_e):
-        # Do not expose stack traces or database details.
         return render_template("error.html"), 500
 
     return app

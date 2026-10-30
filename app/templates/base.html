@@ -47,27 +47,55 @@
   </style>
 </head>
 <body>
+
 <a class="skip-link" href="#main">Skip to main content</a>
+
 <header>
   <a class="brand" href="{{ url_for('index') }}">Blood Bank</a>
+
   <nav style="display:contents" aria-label="Main navigation">
     <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Home</a>
+
     <a href="{{ url_for('donors.register') }}" {% if request.endpoint == 'donors.register' %}aria-current="page"{% endif %}>Register donor</a>
+
     <a href="{{ url_for('donors.list_donors') }}" {% if request.endpoint == 'donors.list_donors' %}aria-current="page"{% endif %}>Donors</a>
+
     <a href="{{ url_for('donations.record') }}" {% if request.endpoint == 'donations.record' %}aria-current="page"{% endif %}>Record donation</a>
+
     <a href="{{ url_for('donations.list_donations') }}" {% if request.endpoint == 'donations.list_donations' %}aria-current="page"{% endif %}>Donations</a>
+
     <a href="{{ url_for('availability.view') }}" {% if request.endpoint == 'availability.view' %}aria-current="page"{% endif %}>Availability</a>
+
     <a href="{{ url_for('issues.issue') }}" {% if request.endpoint == 'issues.issue' %}aria-current="page"{% endif %}>Issue blood</a>
+
+    {% if session.get('role') == 'management' %}
+      <a href="{{ url_for('reports.generate') }}" {% if request.endpoint == 'reports.generate' %}aria-current="page"{% endif %}>Reports</a>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}" {% if request.endpoint == 'auth.login' %}aria-current="page"{% endif %}>Management sign in</a>
+    {% endif %}
+
+    {% if session.get('user_id') %}
+      <form method="post" action="{{ url_for('auth.logout') }}" style="display:inline">
+        <button type="submit">Logout</button>
+      </form>
+    {% endif %}
   </nav>
 </header>
+
 <div class="hours {{ 'open' if is_open else 'closed' }}" role="status">
-  {% if is_open %}Open now{% else %}Closed now{% endif %} · Operating hours: {{ open_time }} to {{ close_time }}
+  {% if is_open %}Open now{% else %}Closed now{% endif %}
+  · Operating hours: {{ open_time }} to {{ close_time }}
 </div>
+
 <main id="main">
   {% for category, message in get_flashed_messages(with_categories=true) %}
-    <div class="flash {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>
+    <div class="flash {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">
+      {{ message }}
+    </div>
   {% endfor %}
+
   {% block content %}{% endblock %}
 </main>
+
 </body>
 </html>
