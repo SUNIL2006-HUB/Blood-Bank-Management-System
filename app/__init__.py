@@ -1,4 +1,3 @@
-
 import os
 from datetime import datetime
 from pathlib import Path
@@ -32,10 +31,10 @@ def create_app(test_config=None):
     db.init_db(app.config["DATABASE"])
     app.teardown_appcontext(db.close_db)
 
-    # Import the existing route blueprints.
+    # Import available route blueprints.
     from .routes import auth, availability, donations, donors, issues
 
-    # Register the blueprints.
+    # Register blueprints.
     app.register_blueprint(donors.bp)
     app.register_blueprint(donations.bp)
     app.register_blueprint(availability.bp)
