@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request
 
-from .auth import roles_required
 from ..constants import BLOOD_GROUPS
 from ..db import get_db
 from ..errors import ValidationError
 from ..services import availability_service
+from .auth import roles_required
 
 bp = Blueprint("availability", __name__, url_prefix="/availability")
 

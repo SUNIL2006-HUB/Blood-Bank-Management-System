@@ -1,10 +1,10 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from .auth import roles_required
 from ..constants import BLOOD_GROUPS
 from ..db import get_db
 from ..errors import ServiceError, ValidationError
 from ..services import donor_service
+from .auth import roles_required
 
 bp = Blueprint("donors", __name__, url_prefix="/donors")
 

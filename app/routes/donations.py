@@ -2,10 +2,10 @@ from datetime import date
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from .auth import roles_required
 from ..db import get_db
 from ..errors import ServiceError, ValidationError
 from ..services import donation_service, donor_service
+from .auth import roles_required
 
 bp = Blueprint("donations", __name__, url_prefix="/donations")
 

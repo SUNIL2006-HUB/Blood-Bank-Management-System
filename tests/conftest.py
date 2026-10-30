@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash
 from app import create_app
 from app.db import connect
 
-
 TEST_USERNAME = "test_staff"
 TEST_PASSWORD = "TestPassword123!"
 
