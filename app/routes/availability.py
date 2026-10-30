@@ -4,19 +4,29 @@ from ..constants import BLOOD_GROUPS
 from ..db import get_db
 from ..errors import ValidationError
 from ..services import availability_service
+from .auth import roles_required
 
 bp = Blueprint("availability", __name__, url_prefix="/availability")
 
 
 @bp.get("")
+@roles_required("staff", "recipient", "management")
 def view():
     selected = (request.args.get("blood_group") or "").strip()
     rows, errors = [], {}
+
     try:
         rows = availability_service.get_availability(get_db(), selected)
     except ValidationError as e:
         errors = e.errors
-    no_stock = bool(selected) and not errors and rows and rows[0]["quantity_ml"] == 0
+
+    no_stock = (
+        bool(selected)
+        and not errors
+        and bool(rows)
+        and rows[0]["quantity_ml"] == 0
+    )
+
     return render_template(
         "availability/view.html",
         rows=rows,

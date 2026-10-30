@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section aria-labelledby="login-heading">
+    <h1 id="login-heading">Login</h1>
+
+    <p>
+        Please enter your username and password to access
+        the Blood Bank Management System.
+    </p>
+
+    <form method="post" action="{{ url_for('auth.login') }}">
+        <input
+            type="hidden"
+            name="next"
+            value="{{ request.args.get('next', '') }}"
+        >
+
+        <label for="username">Username</label>
+        <input
+            type="text"
+            id="username"
+            name="username"
+            autocomplete="username"
+            required
+            autofocus
+        >
+
+        <label for="password">Password</label>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            required
+        >
+
+        <button type="submit">Login</button>
+    </form>
+</section>
+{% endblock %}
