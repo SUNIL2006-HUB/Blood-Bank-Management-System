@@ -31,7 +31,7 @@ def create_app(test_config=None):
     db.init_db(app.config["DATABASE"])
     app.teardown_appcontext(db.close_db)
 
-    from .routes import auth, availability, donations, donors, issues,reports
+    from .routes import auth, availability, donations, donors, issues, reports
 
     app.register_blueprint(donors.bp)
     app.register_blueprint(donations.bp)
