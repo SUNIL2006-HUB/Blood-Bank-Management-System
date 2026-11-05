@@ -1,66 +1,15 @@
-from functools import wraps
-from hmac import compare_digest
-
-from flask import (
-    Blueprint,
-    abort,
-    current_app,
-    flash,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
+from flask import Blueprint, render_template, request
 
 from ..db import get_db
 from ..errors import ValidationError
 from ..services import report_service
+from .auth import roles_required
 
 bp = Blueprint("reports", __name__, url_prefix="/reports")
 
 
-def management_required(view):
-    @wraps(view)
-    def wrapped(*args, **kwargs):
-        if session.get("role") != "management":
-            abort(403)
-        return view(*args, **kwargs)
-
-    return wrapped
-
-
-@bp.route("/login", methods=("GET", "POST"))
-def login():
-    form = request.form if request.method == "POST" else {}
-    if request.method == "POST":
-        username = current_app.config.get("MANAGEMENT_USERNAME")
-        password = current_app.config.get("MANAGEMENT_PASSWORD")
-        supplied_username = form.get("username", "")
-        supplied_password = form.get("password", "")
-        if (
-            username
-            and password
-            and compare_digest(supplied_username, username)
-            and compare_digest(supplied_password, password)
-        ):
-            session.clear()
-            session["role"] = "management"
-            flash("Signed in as blood bank management.", "success")
-            return redirect(url_for("reports.generate"))
-        flash("Invalid management credentials or management sign-in is not configured.", "error")
-    return render_template("reports/login.html", form=form)
-
-
-@bp.post("/logout")
-def logout():
-    session.clear()
-    flash("You have been signed out.", "success")
-    return redirect(url_for("index"))
-
-
 @bp.route("", methods=("GET", "POST"))
-@management_required
+@roles_required("management")
 def generate():
     report_type = (request.values.get("report_type") or "donation").strip()
     start_date = (request.values.get("start_date") or "").strip()

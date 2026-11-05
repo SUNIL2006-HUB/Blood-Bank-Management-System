@@ -10,7 +10,7 @@ bp = Blueprint("availability", __name__, url_prefix="/availability")
 
 
 @bp.get("")
-@roles_required("staff", "recipient", "management")
+@roles_required("staff", "recipient")
 def view():
     selected = (request.args.get("blood_group") or "").strip()
     rows, errors = [], {}

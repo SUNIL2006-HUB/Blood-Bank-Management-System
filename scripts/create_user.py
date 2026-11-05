@@ -31,8 +31,8 @@ def main():
     password = getpass.getpass("Enter password (minimum 12 characters): ")
     confirm_password = getpass.getpass("Confirm password: ")
 
-    if len(password) < 12:
-        print("Error: Password must contain at least 12 characters.")
+    if len(password) < 8:
+        print("Error: Password must contain at least 8 characters.")
         return 1
 
     if password != confirm_password:

@@ -9,9 +9,12 @@ pip install -r requirements.txt
 flask --app app run --debug
 ```
 
-Optional env vars (see `.env.example`): `SECRET_KEY`, `DATABASE_PATH` (default `instance/bloodbank.db`),
-`MANAGEMENT_USERNAME`, and `MANAGEMENT_PASSWORD`. Set a strong secret key and management credentials
-before using management reports. Reports are unavailable until management sign-in is configured.
+Optional env vars (see `.env.example`): `SECRET_KEY` and `DATABASE_PATH` (default
+`instance/bloodbank.db`). Create the first management account through the one-time setup link on
+the login page. User accounts can sign up from the login page; staff and additional management
+accounts are managed from the management Users page.
+
+User signup creates an account with a username and password. Email verification is not required.
 
 ## Test
 
@@ -27,9 +30,12 @@ python -m pytest
 | PBI-02 | Donation Recording (+ automatic stock increase) | `/donations/new`, `/donations` |
 | PBI-03 | View/Search Blood Availability | `/availability`, `/availability?blood_group=O+` |
 | PBI-04 | Blood Issuance (+ automatic stock decrease) | `/issues/new`, `/issues` |
-| PBI-05 | Donation & Availability Reporting | `/reports` (management sign-in at `/reports/login`) |
+| PBI-05 | Donation & Availability Reporting | `/reports` (management role) |
+| PBI-09 | User Accounts & Role-Based Access | `/auth/login`, `/auth/setup`, `/users` |
 
 Donation reports accept optional inclusive start and end dates; leaving both blank includes all
 donations. Availability reports show a current stock snapshot because the inventory table does not
-store historical stock levels. Only users with the configured management credentials can access
-report generation.
+store historical stock levels. Only logged-in management accounts can access report generation.
+
+Login offers User, Staff, and Management account types; each role has access only to its permitted
+pages. Newly created accounts must change their temporary password at first login.

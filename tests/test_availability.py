@@ -92,6 +92,7 @@ def test_st01_concurrent_readers_see_consistent_stock(client, app, db):
         data={
             "username": "test_staff",
             "password": "TestPassword123!",
+            "role": "staff",
         },
         follow_redirects=False,
     )

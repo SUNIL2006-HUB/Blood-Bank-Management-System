@@ -40,6 +40,9 @@
     .task-card.primary{background:#b3202a;border-color:#b3202a;color:#fff}
     .task-card.primary span{color:#ffe3e5}
     .task-card.primary:hover{background:#8f1922}
+    .password-field{display:flex;align-items:center;gap:.5rem}
+    .password-field input{flex:1;min-width:0}
+    .password-toggle{margin:0;white-space:nowrap}
     @media (max-width:600px){
       header{gap:.8rem;padding:.8rem 1rem}
       table{display:block;overflow-x:auto}
@@ -50,42 +53,45 @@
 
 <a class="skip-link" href="#main">Skip to main content</a>
 
+{% if session.get('user_id') %}
 <header>
-  <a class="brand" href="{{ url_for('index') }}">Blood Bank</a>
+  {% if session.get('role') == 'staff' %}
+    <a class="brand" href="{{ url_for('index') }}">Blood Bank</a>
+  {% elif session.get('role') == 'recipient' %}
+    <a class="brand" href="{{ url_for('availability.view') }}">Blood Bank</a>
+  {% else %}
+    <a class="brand" href="{{ url_for('reports.generate') }}">Blood Bank</a>
+  {% endif %}
 
   <nav style="display:contents" aria-label="Main navigation">
-    <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Home</a>
-
-    <a href="{{ url_for('donors.register') }}" {% if request.endpoint == 'donors.register' %}aria-current="page"{% endif %}>Register donor</a>
-
-    <a href="{{ url_for('donors.list_donors') }}" {% if request.endpoint == 'donors.list_donors' %}aria-current="page"{% endif %}>Donors</a>
-
-    <a href="{{ url_for('donations.record') }}" {% if request.endpoint == 'donations.record' %}aria-current="page"{% endif %}>Record donation</a>
-
-    <a href="{{ url_for('donations.list_donations') }}" {% if request.endpoint == 'donations.list_donations' %}aria-current="page"{% endif %}>Donations</a>
-
-    <a href="{{ url_for('availability.view') }}" {% if request.endpoint == 'availability.view' %}aria-current="page"{% endif %}>Availability</a>
-
-    <a href="{{ url_for('issues.issue') }}" {% if request.endpoint == 'issues.issue' %}aria-current="page"{% endif %}>Issue blood</a>
-
-    {% if session.get('role') == 'management' %}
-      <a href="{{ url_for('reports.generate') }}" {% if request.endpoint == 'reports.generate' %}aria-current="page"{% endif %}>Reports</a>
-    {% else %}
-      <a href="{{ url_for('auth.login') }}" {% if request.endpoint == 'auth.login' %}aria-current="page"{% endif %}>Management sign in</a>
+    {% if session.get('role') == 'staff' %}
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('donors.register') }}">Register donor</a>
+      <a href="{{ url_for('donors.list_donors') }}">Donors</a>
+      <a href="{{ url_for('donations.record') }}">Record donation</a>
+      <a href="{{ url_for('donations.list_donations') }}">Donations</a>
+      <a href="{{ url_for('availability.view') }}">Availability</a>
+      <a href="{{ url_for('issues.issue') }}">Issue blood</a>
+    {% elif session.get('role') == 'recipient' %}
+      <a href="{{ url_for('availability.view') }}">Availability</a>
+    {% elif session.get('role') == 'management' %}
+      <a href="{{ url_for('reports.generate') }}">Reports</a>
+      <a href="{{ url_for('users.list_users') }}">Users</a>
     {% endif %}
-
-    {% if session.get('user_id') %}
-      <form method="post" action="{{ url_for('auth.logout') }}" style="display:inline">
-        <button type="submit">Logout</button>
-      </form>
-    {% endif %}
+    <a href="{{ url_for('auth.change_password') }}">Change password</a>
+    <form method="post" action="{{ url_for('auth.logout') }}" style="display:inline">
+      <button type="submit">Logout</button>
+    </form>
   </nav>
 </header>
 
-<div class="hours {{ 'open' if is_open else 'closed' }}" role="status">
-  {% if is_open %}Open now{% else %}Closed now{% endif %}
-  · Operating hours: {{ open_time }} to {{ close_time }}
-</div>
+{% if session.get('role') == 'staff' %}
+  <div class="hours {{ 'open' if is_open else 'closed' }}" role="status">
+    {% if is_open %}Open now{% else %}Closed now{% endif %}
+    · Operating hours: {{ open_time }} to {{ close_time }}
+  </div>
+{% endif %}
+{% endif %}
 
 <main id="main">
   {% for category, message in get_flashed_messages(with_categories=true) %}
