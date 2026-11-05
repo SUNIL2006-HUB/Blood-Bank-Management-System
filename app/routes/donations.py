@@ -1,6 +1,13 @@
 from datetime import date
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 
 from ..db import get_db
 from ..errors import ServiceError, ValidationError
@@ -11,7 +18,7 @@ bp = Blueprint("donations", __name__, url_prefix="/donations")
 
 
 @bp.get("")
-@roles_required("staff", "management")
+@roles_required("staff")
 def list_donations():
     return render_template(
         "donations/list.html",
@@ -20,7 +27,7 @@ def list_donations():
 
 
 @bp.route("/new", methods=("GET", "POST"))
-@roles_required("staff", "management")
+@roles_required("staff")
 def record():
     db = get_db()
     form, errors = {}, {}

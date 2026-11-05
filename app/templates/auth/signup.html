@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<section aria-labelledby="signup-heading">
+    <h1 id="signup-heading">Create a User account</h1>
+    <p>Create an account to check blood availability.</p>
+    <form method="post">
+        <label for="signup-username">Username</label>
+        <input
+            id="signup-username"
+            name="signup_username"
+            maxlength="80"
+            autocomplete="username"
+            value="{{ username }}"
+            required
+            {% if errors.get('username') %}aria-invalid="true"{% endif %}
+        >
+        {% if errors.get('username') %}
+            <div class="field-error" role="alert">{{ errors['username'] }}</div>
+        {% endif %}
+
+        <label for="signup-password">Password</label>
+        <input
+            id="signup-password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            required
+            {% if errors.get('password') %}aria-invalid="true"{% endif %}
+        >
+        {% if errors.get('password') %}
+            <div class="field-error" role="alert">{{ errors['password'] }}</div>
+        {% endif %}
+
+        <label for="signup-confirmation">Confirm password</label>
+        <input
+            id="signup-confirmation"
+            name="confirmation"
+            type="password"
+            autocomplete="new-password"
+            required
+            {% if errors.get('confirmation') %}aria-invalid="true"{% endif %}
+        >
+        {% if errors.get('confirmation') %}
+            <div class="field-error" role="alert">{{ errors['confirmation'] }}</div>
+        {% endif %}
+
+        <button type="submit">Create account</button>
+    </form>
+</section>
+{% endblock %}

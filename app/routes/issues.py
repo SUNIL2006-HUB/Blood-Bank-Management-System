@@ -1,4 +1,11 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 
 from ..constants import BLOOD_GROUPS
 from ..db import get_db
@@ -10,7 +17,7 @@ bp = Blueprint("issues", __name__, url_prefix="/issues")
 
 
 @bp.get("")
-@roles_required("staff", "management")
+@roles_required("staff")
 def list_issues():
     return render_template(
         "issues/list.html",
@@ -19,7 +26,7 @@ def list_issues():
 
 
 @bp.route("/new", methods=("GET", "POST"))
-@roles_required("staff", "management")
+@roles_required("staff")
 def issue():
     form, errors = {}, {}
 

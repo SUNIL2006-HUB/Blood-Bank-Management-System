@@ -7,37 +7,75 @@
     <h1 id="login-heading">Login</h1>
 
     <p>
-        Please enter your username and password to access
-        the Blood Bank Management System.
+        Choose your account type and enter your credentials.
     </p>
 
     <form method="post" action="{{ url_for('auth.login') }}">
-        <input
-            type="hidden"
-            name="next"
-            value="{{ request.args.get('next', '') }}"
-        >
+        <label for="role">I am a</label>
+        <select id="role" name="role" required>
+            <option value="" disabled {{ 'selected' if not login_role }}>-- select account type --</option>
+            <option value="recipient" {{ 'selected' if login_role == 'recipient' }}>User</option>
+            <option value="staff" {{ 'selected' if login_role == 'staff' }}>Staff</option>
+            <option value="management" {{ 'selected' if login_role == 'management' }}>Management</option>
+        </select>
 
         <label for="username">Username</label>
         <input
             type="text"
             id="username"
             name="username"
+            maxlength="80"
             autocomplete="username"
             required
             autofocus
         >
 
         <label for="password">Password</label>
-        <input
-            type="password"
-            id="password"
-            name="password"
-            autocomplete="current-password"
-            required
-        >
+        <div class="password-field">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                autocomplete="current-password"
+                required
+            >
+            <button
+                type="button"
+                class="password-toggle"
+                aria-controls="password"
+                aria-pressed="false"
+            >Show</button>
+        </div>
 
         <button type="submit">Login</button>
     </form>
+
+    <p id="user-signup-link" hidden>
+        New User? <a href="{{ url_for('auth.signup') }}">Sign up</a>
+    </p>
+
+    {% if not manager_exists %}
+        <p><a href="{{ url_for('auth.setup') }}">Set up the first management account</a></p>
+    {% endif %}
 </section>
+<script>
+    const roleSelect = document.getElementById("role");
+    const signupLink = document.getElementById("user-signup-link");
+    const passwordInput = document.getElementById("password");
+    const passwordToggle = document.querySelector(".password-toggle");
+
+    const updateSignupLink = () => {
+        signupLink.hidden = roleSelect.value !== "recipient";
+    };
+
+    roleSelect.addEventListener("change", updateSignupLink);
+    updateSignupLink();
+
+    passwordToggle.addEventListener("click", () => {
+        const isVisible = passwordInput.type === "text";
+        passwordInput.type = isVisible ? "password" : "text";
+        passwordToggle.textContent = isVisible ? "Show" : "Hide";
+        passwordToggle.setAttribute("aria-pressed", String(!isVisible));
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<h1>User accounts</h1>
+
+<section aria-labelledby="create-user-heading">
+    <h2 id="create-user-heading">Create an account</h2>
+    <p>A temporary password will be shown once. The new user must change it at first login.</p>
+    <form method="post" action="{{ url_for('users.create_user') }}">
+        <label for="username">Username</label>
+        <input id="username" name="username" maxlength="80" required>
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+            {% for role in roles %}
+                <option value="{{ role }}">{{ role|capitalize }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Create account</button>
+    </form>
+</section>
+
+<h2>Existing accounts</h2>
+{% if users %}
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.role|capitalize }}</td>
+                    <td>{{ "Disabled" if user.disabled else "Active" }}</td>
+                    <td>
+                        <form method="post"
+                              action="{{ url_for('users.set_disabled', user_id=user.id) }}">
+                            <input type="hidden" name="disabled" value="{{ 0 if user.disabled else 1 }}">
+                            <button type="submit">
+                                {{ "Enable" if user.disabled else "Disable" }}
+                            </button>
+                        </form>
+                        <form method="post"
+                              action="{{ url_for('users.reset_password', user_id=user.id) }}">
+                            <button type="submit">Reset password</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No accounts are registered.</p>
+{% endif %}
+{% endblock %}

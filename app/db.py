@@ -4,6 +4,8 @@ from pathlib import Path
 
 from flask import current_app, g
 
+from .migrations import MIGRATIONS
+
 SCHEMA = Path(__file__).with_name("schema.sql")
 
 
@@ -29,8 +31,43 @@ def close_db(_exc=None):
 
 def init_db(path):
     conn = connect(path)
-    conn.executescript(SCHEMA.read_text())
-    conn.close()
+    try:
+        conn.executescript(SCHEMA.read_text(encoding="utf-8"))
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                version INTEGER PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+            """
+        )
+        applied = {
+            row["version"]
+            for row in conn.execute("SELECT version FROM schema_migrations")
+        }
+        supported_versions = {version for version, _migration in MIGRATIONS}
+        unknown_versions = applied - supported_versions
+        if unknown_versions:
+            versions = ", ".join(str(version) for version in sorted(unknown_versions))
+            raise RuntimeError(f"Database has unsupported migration versions: {versions}")
+
+        for version, migration in MIGRATIONS:
+            if version in applied:
+                continue
+            conn.execute("BEGIN IMMEDIATE")
+            try:
+                migration(conn)
+                conn.execute(
+                    "INSERT INTO schema_migrations (version) VALUES (?)",
+                    (version,),
+                )
+                conn.execute("COMMIT")
+            except BaseException:
+                if conn.in_transaction:
+                    conn.execute("ROLLBACK")
+                raise
+    finally:
+        conn.close()
 
 
 @contextmanager

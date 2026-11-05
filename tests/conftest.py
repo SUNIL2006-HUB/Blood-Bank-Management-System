@@ -57,6 +57,7 @@ def client(app):
         data={
             "username": TEST_USERNAME,
             "password": TEST_PASSWORD,
+            "role": "staff",
         },
         follow_redirects=False,
     )

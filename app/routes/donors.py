@@ -10,7 +10,7 @@ bp = Blueprint("donors", __name__, url_prefix="/donors")
 
 
 @bp.get("")
-@roles_required("staff", "management")
+@roles_required("staff")
 def list_donors():
     return render_template(
         "donors/list.html",
@@ -19,7 +19,7 @@ def list_donors():
 
 
 @bp.route("/register", methods=("GET", "POST"))
-@roles_required("staff", "management")
+@roles_required("staff")
 def register():
     form, errors = {}, {}
 
