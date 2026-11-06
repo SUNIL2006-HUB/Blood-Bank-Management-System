@@ -6,9 +6,11 @@
   <label for="report_type">Report type</label>
   <select id="report_type" name="report_type">
     <option value="donation" {{ 'selected' if report_type == 'donation' }}>Donations</option>
+    <option value="issue" {{ 'selected' if report_type == 'issue' }}>Issues</option>
+    <option value="combined" {{ 'selected' if report_type == 'combined' }}>Combined activity</option>
     <option value="availability" {{ 'selected' if report_type == 'availability' }}>Current availability</option>
   </select>
-  <p class="hint">Donation reports can be filtered by date. Leave both dates blank to include all donations. Availability reports show the current stock snapshot.</p>
+  <p class="hint">Donation, issue, and combined reports can be filtered by date. Leave both dates blank to include all activity. Availability reports show the current stock snapshot.</p>
   <label for="start_date">From date (inclusive)</label>
   <input id="start_date" name="start_date" type="date" value="{{ start_date }}"
          {% if errors.get('start_date') %}aria-invalid="true"{% endif %}>
@@ -19,6 +21,7 @@
   {% if errors.get('end_date') %}<div class="field-error" role="alert">{{ errors['end_date'] }}</div>{% endif %}
   {% if errors.get('report_type') %}<div class="field-error" role="alert">{{ errors['report_type'] }}</div>{% endif %}
   <button type="submit">Generate report</button>
+  <button type="submit" name="format" value="csv">Download CSV</button>
 </form>
 {% if report is not none %}
   {% if report_type == 'donation' %}
@@ -32,7 +35,42 @@
         <tr><td>{{ row.donation_date }}</td><td>{{ row.donor_name }}</td><td>{{ row.blood_group }}</td><td>{{ row.quantity_ml }}</td></tr>
         {% endfor %}
       </table>
-    {% else %}<p class="flash warning" role="status">No donations match the selected date range.</p>{% endif %}
+    {% else %}<p class="flash warning" role="status">No records found for the selected period</p>{% endif %}
+  {% elif report_type == 'issue' %}
+    <h2>Issue report</h2>
+    <p>{{ report.count }} issue{{ '' if report.count == 1 else 's' }} · {{ report.quantity_ml }} ml total</p>
+    {% if report.rows %}
+      <table>
+        <caption class="hint" style="text-align:left">Issues matching the selected date range</caption>
+        <tr><th scope="col">Date</th><th scope="col">Blood group</th><th scope="col">Quantity (ml)</th></tr>
+        {% for row in report.rows %}
+        <tr><td>{{ row.issue_date }}</td><td>{{ row.blood_group }}</td><td>{{ row.quantity_ml }}</td></tr>
+        {% endfor %}
+      </table>
+    {% else %}<p class="flash warning" role="status">No records found for the selected period</p>{% endif %}
+  {% elif report_type == 'combined' %}
+    <h2>Combined activity report</h2>
+    <p>{{ report.count }} transactions · {{ report.quantity_ml }} ml total activity</p>
+    {% if report.count %}
+      <h3>Donations</h3>
+      {% if report.donations.rows %}
+        <table>
+          <tr><th scope="col">Date</th><th scope="col">Donor</th><th scope="col">Blood group</th><th scope="col">Quantity (ml)</th></tr>
+          {% for row in report.donations.rows %}
+          <tr><td>{{ row.donation_date }}</td><td>{{ row.donor_name }}</td><td>{{ row.blood_group }}</td><td>{{ row.quantity_ml }}</td></tr>
+          {% endfor %}
+        </table>
+      {% else %}<p>No donations found for the selected period.</p>{% endif %}
+      <h3>Issues</h3>
+      {% if report.issues.rows %}
+        <table>
+          <tr><th scope="col">Date</th><th scope="col">Blood group</th><th scope="col">Quantity (ml)</th></tr>
+          {% for row in report.issues.rows %}
+          <tr><td>{{ row.issue_date }}</td><td>{{ row.blood_group }}</td><td>{{ row.quantity_ml }}</td></tr>
+          {% endfor %}
+        </table>
+      {% else %}<p>No issues found for the selected period.</p>{% endif %}
+    {% else %}<p class="flash warning" role="status">No records found for the selected period</p>{% endif %}
   {% else %}
     <h2>Current availability report</h2>
     {% if report %}
@@ -40,7 +78,7 @@
         <tr><th scope="col">Blood group</th><th scope="col">Available (ml)</th></tr>
         {% for row in report %}<tr><td>{{ row.blood_group }}</td><td>{{ row.quantity_ml }}</td></tr>{% endfor %}
       </table>
-    {% else %}<p class="flash warning" role="status">No availability records are available.</p>{% endif %}
+    {% else %}<p class="flash warning" role="status">No records found for the selected period</p>{% endif %}
   {% endif %}
 {% endif %}
 <form method="post" action="{{ url_for('auth.logout') }}"><button type="submit">Sign out</button></form>
