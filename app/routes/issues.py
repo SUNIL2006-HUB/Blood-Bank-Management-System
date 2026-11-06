@@ -4,12 +4,14 @@ from flask import (
     redirect,
     render_template,
     request,
+    session,
     url_for,
 )
 
 from ..constants import BLOOD_GROUPS
 from ..db import get_db
 from ..errors import ServiceError, ValidationError
+from ..repositories import audit_repository
 from ..services import issue_service
 from .auth import roles_required
 
@@ -40,6 +42,14 @@ def issue():
         except ServiceError as e:
             flash(str(e), "error")
         else:
+            audit_repository.record(
+                get_db(),
+                "blood.issue_recorded",
+                session["username"],
+                user_id=session["user_id"],
+                target_type="blood_issue",
+                target_id=result["id"],
+            )
             flash(
                 f"Blood issued: {result['quantity_ml']} ml of "
                 f"{result['blood_group']}. "

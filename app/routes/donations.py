@@ -6,11 +6,13 @@ from flask import (
     redirect,
     render_template,
     request,
+    session,
     url_for,
 )
 
 from ..db import get_db
 from ..errors import ServiceError, ValidationError
+from ..repositories import audit_repository
 from ..services import donation_service, donor_service
 from .auth import roles_required
 
@@ -42,6 +44,14 @@ def record():
         except ServiceError as e:
             flash(str(e), "error")
         else:
+            audit_repository.record(
+                db,
+                "donation.recorded",
+                session["username"],
+                user_id=session["user_id"],
+                target_type="donation",
+                target_id=result["id"],
+            )
             flash(
                 f"Donation recorded: {result['quantity_ml']} ml of "
                 f"{result['blood_group']}. "

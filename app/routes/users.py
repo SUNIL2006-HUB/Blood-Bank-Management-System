@@ -8,11 +8,13 @@ from flask import (
     redirect,
     render_template,
     request,
+    session,
     url_for,
 )
 from werkzeug.security import generate_password_hash
 
 from ..db import get_db
+from ..repositories import audit_repository
 from .auth import ALLOWED_ROLES, roles_required
 
 bp = Blueprint("users", __name__, url_prefix="/users")
@@ -61,6 +63,18 @@ def create_user():
     except sqlite3.IntegrityError:
         flash("That username is already in use.", "error")
         return redirect(url_for("users.list_users"))
+    user_id = db.execute(
+        "SELECT id FROM users WHERE username = ?",
+        (username,),
+    ).fetchone()["id"]
+    audit_repository.record(
+        db,
+        "user.created",
+        session["username"],
+        user_id=session["user_id"],
+        target_type="user",
+        target_id=user_id,
+    )
     flash(
         f"Account created. Temporary password for {username}: {password}",
         "success",
@@ -108,6 +122,14 @@ def set_disabled(user_id):
             db.execute("ROLLBACK")
         raise
 
+    audit_repository.record(
+        db,
+        "user.disabled" if disabled else "user.enabled",
+        session["username"],
+        user_id=session["user_id"],
+        target_type="user",
+        target_id=user_id,
+    )
     flash("Account disabled." if disabled else "Account enabled.", "success")
     return redirect(url_for("users.list_users"))
 
@@ -131,5 +153,13 @@ def reset_password(user_id):
     target = db.execute(
         "SELECT username FROM users WHERE id = ?", (user_id,)
     ).fetchone()
+    audit_repository.record(
+        db,
+        "user.password_reset",
+        session["username"],
+        user_id=session["user_id"],
+        target_type="user",
+        target_id=user_id,
+    )
     flash(f"Temporary password for {target['username']}: {password}", "success")
     return redirect(url_for("users.list_users"))

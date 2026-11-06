@@ -1,4 +1,6 @@
+import secrets
 import sqlite3
+import time
 from functools import wraps
 
 from flask import (
@@ -14,6 +16,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..db import get_db
+from ..repositories import audit_repository, login_throttle_repository
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -23,6 +26,9 @@ ROLE_LANDING_ENDPOINTS = {
     "recipient": "availability.view",
     "management": "reports.generate",
 }
+SESSION_IDLE_TIMEOUT_SECONDS = 15 * 60
+DUMMY_PASSWORD_HASH = generate_password_hash(secrets.token_urlsafe(32))
+
 
 def _password_error(password):
     if len(password) < 8:
@@ -74,6 +80,13 @@ def validate_session_account():
     if user_id is None:
         return None
 
+    now = time.time()
+    last_activity = session.get("last_activity", now)
+    if now - last_activity >= SESSION_IDLE_TIMEOUT_SECONDS:
+        session.clear()
+        flash("Your session expired due to inactivity. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
+
     user = get_db().execute(
         "SELECT role, disabled, must_change_password FROM users WHERE id = ?",
         (user_id,),
@@ -87,6 +100,8 @@ def validate_session_account():
         flash("Your account session has ended. Please log in again.", "warning")
         return redirect(url_for("auth.login"))
 
+    session.permanent = True
+    session["last_activity"] = now
     if (
         user["must_change_password"]
         and request.endpoint not in {
@@ -113,7 +128,20 @@ def login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         role = request.form.get("role", "")
+        remote_addr = request.remote_addr or "unknown"
+        now = int(time.time())
         db = get_db()
+
+        if login_throttle_repository.is_blocked(
+            db, username, remote_addr, now
+        ):
+            audit_repository.record(db, "login.blocked", username[:80] or "unknown")
+            flash("Invalid username or password.", "error")
+            return render_template(
+                "auth/login.html",
+                manager_exists=_manager_exists(),
+                login_role=role,
+            ), 401
 
         user = None
         if len(username) <= 80:
@@ -127,14 +155,29 @@ def login():
                 (username,),
             ).fetchone()
 
+        password_matches = check_password_hash(
+            user["password_hash"] if user is not None else DUMMY_PASSWORD_HASH,
+            password,
+        )
         if (
             user is None
             or len(username) > 80
-            or not check_password_hash(user["password_hash"], password)
+            or not password_matches
             or user["role"] not in ALLOWED_ROLES
             or user["disabled"]
             or user["role"] != role
         ):
+            login_throttle_repository.record_failure(
+                db,
+                username,
+                remote_addr,
+                now,
+            )
+            audit_repository.record(
+                db,
+                "login.failed",
+                username[:80] or "unknown",
+            )
             flash("Invalid username or password.", "error")
             return render_template(
                 "auth/login.html",
@@ -142,11 +185,20 @@ def login():
                 login_role=role,
             ), 401
 
+        login_throttle_repository.clear_failures(db, username, remote_addr)
         session.clear()
+        session.permanent = True
         session["user_id"] = user["id"]
         session["username"] = user["username"]
         session["role"] = user["role"]
         session["must_change_password"] = bool(user["must_change_password"])
+        session["last_activity"] = now
+        audit_repository.record(
+            db,
+            "login.succeeded",
+            user["username"],
+            user_id=user["id"],
+        )
         if user["must_change_password"]:
             return redirect(url_for("auth.change_password"))
         return redirect(url_for(ROLE_LANDING_ENDPOINTS[user["role"]]))
@@ -224,6 +276,18 @@ def signup():
             errors={},
         ), 400
 
+    created = db.execute(
+        "SELECT id FROM users WHERE username = ?",
+        (username,),
+    ).fetchone()
+    audit_repository.record(
+        db,
+        "user.self_registered",
+        username,
+        user_id=created["id"],
+        target_type="user",
+        target_id=created["id"],
+    )
     flash("User account created. You can now log in.", "success")
     return redirect(url_for("auth.login", role="recipient"))
 
@@ -273,6 +337,18 @@ def setup():
                     db.execute("ROLLBACK")
                 raise
             else:
+                manager = db.execute(
+                    "SELECT id FROM users WHERE username = ?",
+                    (username,),
+                ).fetchone()
+                audit_repository.record(
+                    db,
+                    "user.initial_management_created",
+                    username,
+                    user_id=manager["id"],
+                    target_type="user",
+                    target_id=manager["id"],
+                )
                 flash("Management account created. Please log in.", "success")
                 return redirect(url_for("auth.login", role="management"))
 
@@ -300,6 +376,14 @@ def change_password():
                 WHERE id = ?
                 """,
                 (generate_password_hash(password), session["user_id"]),
+            )
+            audit_repository.record(
+                get_db(),
+                "user.password_changed",
+                session["username"],
+                user_id=session["user_id"],
+                target_type="user",
+                target_id=session["user_id"],
             )
             session["must_change_password"] = False
             flash("Password changed successfully.", "success")

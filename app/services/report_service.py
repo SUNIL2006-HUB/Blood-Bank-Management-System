@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 from ..errors import ValidationError
@@ -10,6 +11,8 @@ def _date(value, field):
     if not value:
         return None
     try:
+        if re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value) is None:
+            raise ValueError
         return date.fromisoformat(value).isoformat()
     except ValueError:
         raise ValidationError({field: "Enter a valid date"}) from None

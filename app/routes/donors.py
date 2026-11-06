@@ -1,8 +1,9 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from ..constants import BLOOD_GROUPS
 from ..db import get_db
 from ..errors import ServiceError, ValidationError
+from ..repositories import audit_repository
 from ..services import donor_service
 from .auth import roles_required
 
@@ -33,6 +34,14 @@ def register():
         except ServiceError as e:
             flash(str(e), "error")
         else:
+            audit_repository.record(
+                get_db(),
+                "donor.registered",
+                session["username"],
+                user_id=session["user_id"],
+                target_type="donor",
+                target_id=donor["id"],
+            )
             flash(
                 f"Donor registered successfully (ID {donor['id']})",
                 "success",
