@@ -40,10 +40,13 @@ python -m pytest
 | PBI-05 | Donation & Availability Reporting | `/reports` (management role) |
 | PBI-09 | User Accounts & Role-Based Access | `/auth/login`, `/auth/setup`, `/users` |
 | PBI-10 | Security Hardening & Input Safety | Login throttling, session expiry, audit logging, strict input validation |
+| PBI-11 | Reporting Completion | Donation, issue, combined activity, availability, and CSV reports |
 
-Donation reports accept optional inclusive start and end dates; leaving both blank includes all
-donations. Availability reports show a current stock snapshot because the inventory table does not
-store historical stock levels. Only logged-in management accounts can access report generation.
+Donation, issue, and combined reports accept optional start and end dates; leaving both blank
+includes all activity. Reports can be viewed in the browser or downloaded as CSV, and exclude
+donor contact details. Availability reports show a current stock snapshot because the inventory
+table does not store historical stock levels. Only logged-in management accounts can access report
+generation.
 
 Login offers User, Staff, and Management account types; each role has access only to its permitted
 pages. Newly created accounts must change their temporary password at first login.

@@ -15,3 +15,22 @@ def donation_rows(db, start_date=None, end_date=None):
             ORDER BY d.donation_date, d.id""",
         params,
     ).fetchall()
+
+
+def issue_rows(db, start_date=None, end_date=None):
+    conditions, params = [], []
+    if start_date:
+        conditions.append("date(i.issued_at) >= ?")
+        params.append(start_date)
+    if end_date:
+        conditions.append("date(i.issued_at) <= ?")
+        params.append(end_date)
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    return db.execute(
+        f"""SELECT i.id, date(i.issued_at) AS issue_date,
+                   i.blood_group, i.quantity_ml
+            FROM blood_issue i
+            {where}
+            ORDER BY i.issued_at, i.id""",
+        params,
+    ).fetchall()
