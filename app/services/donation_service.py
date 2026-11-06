@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from datetime import date
 
@@ -11,12 +12,16 @@ def _validate(db, form):
     errors, donor = {}, None
 
     raw_id = (form.get("donor_id") or "").strip()
-    if not (raw_id.isascii() and raw_id.isdigit()):
+    if not (raw_id.isascii() and raw_id.isdigit() and len(raw_id) <= 19):
         errors["donor_id"] = "Donor not found"
     else:
-        donor = donor_repository.get(db, int(raw_id))
-        if donor is None:
+        donor_id = int(raw_id)
+        if donor_id > 9_223_372_036_854_775_807:
             errors["donor_id"] = "Donor not found"
+        else:
+            donor = donor_repository.get(db, donor_id)
+            if donor is None:
+                errors["donor_id"] = "Donor not found"
 
     blood_group = (form.get("blood_group") or "").strip()
     if blood_group not in BLOOD_GROUPS:
@@ -27,17 +32,25 @@ def _validate(db, form):
         )
 
     quantity = None
+    raw_quantity = (form.get("quantity_ml") or "").strip()
     try:
-        quantity = int((form.get("quantity_ml") or "").strip())
+        if not (raw_quantity.isascii() and raw_quantity.isdigit()):
+            raise ValueError
+        if len(raw_quantity) > 12:
+            errors["quantity_ml"] = "Quantity is too large"
+            raise ValueError
+        quantity = int(raw_quantity)
         if quantity <= 0:
             errors["quantity_ml"] = "Quantity must be greater than zero"
         elif quantity > MAX_DONATION_ML:
             errors["quantity_ml"] = "Quantity exceeds maximum permissible donation limit"
     except ValueError:
-        errors["quantity_ml"] = "Quantity must be greater than zero"
+        errors.setdefault("quantity_ml", "Quantity must be greater than zero")
 
     donation_date = (form.get("donation_date") or "").strip() or date.today().isoformat()
     try:
+        if re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", donation_date) is None:
+            raise ValueError
         parsed = date.fromisoformat(donation_date)
         if parsed > date.today():
             errors["donation_date"] = "Donation date cannot be in the future"

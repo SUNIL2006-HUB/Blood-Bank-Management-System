@@ -14,6 +14,7 @@ def validate_donor(form):
     name = (form.get("name") or "").strip()
     blood_group = (form.get("blood_group") or "").strip()
     phone = (form.get("phone") or "").strip()
+    raw_age = (form.get("age") or "").strip()
     age = None
 
     if not name:
@@ -22,7 +23,9 @@ def validate_donor(form):
         errors["name"] = "Name must be at most 100 characters"
 
     try:
-        age = int((form.get("age") or "").strip())
+        if not (raw_age.isascii() and raw_age.isdigit() and len(raw_age) <= 3):
+            raise ValueError
+        age = int(raw_age)
         if age <= 0:
             errors["age"] = "Age must be a positive number"
         elif age < MIN_DONOR_AGE:

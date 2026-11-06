@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session
 
 from ..db import get_db
 from ..errors import ValidationError
+from ..repositories import audit_repository
 from ..services import report_service
 from .auth import roles_required
 
@@ -26,6 +27,15 @@ def generate():
             )
         except ValidationError as exc:
             errors = exc.errors
+        else:
+            audit_repository.record(
+                get_db(),
+                "report.generated",
+                session["username"],
+                user_id=session["user_id"],
+                target_type="report",
+                target_id=None,
+            )
     return render_template(
         "reports/generate.html",
         report_type=report_type,

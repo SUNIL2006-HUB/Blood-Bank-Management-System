@@ -1,6 +1,6 @@
 import sqlite3
 
-from ..constants import BLOOD_GROUPS
+from ..constants import BLOOD_GROUPS, MAX_ISSUE_ML
 from ..db import transaction
 from ..errors import ServiceError, ValidationError
 from ..repositories import issue_repository, stock_repository
@@ -13,12 +13,20 @@ def _validate(form):
         errors["blood_group"] = "Invalid blood group selected"
 
     quantity = None
+    raw_quantity = (form.get("quantity_ml") or "").strip()
     try:
-        quantity = int((form.get("quantity_ml") or "").strip())
+        if not (raw_quantity.isascii() and raw_quantity.isdigit()):
+            raise ValueError
+        if len(raw_quantity) > 12:
+            errors["quantity_ml"] = "Quantity is too large"
+            raise ValueError
+        quantity = int(raw_quantity)
         if quantity <= 0:
             errors["quantity_ml"] = "Quantity must be greater than zero"
+        elif quantity > MAX_ISSUE_ML:
+            errors["quantity_ml"] = "Quantity is too large"
     except ValueError:
-        errors["quantity_ml"] = "Quantity must be greater than zero"
+        errors.setdefault("quantity_ml", "Quantity must be greater than zero")
 
     recipient = (form.get("recipient") or "").strip() or None
     if recipient and len(recipient) > 100:

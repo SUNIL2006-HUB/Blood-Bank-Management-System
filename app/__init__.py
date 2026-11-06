@@ -1,5 +1,7 @@
 import os
-from datetime import datetime
+import secrets
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import Flask, render_template
@@ -7,11 +9,36 @@ from flask import Flask, render_template
 from . import db
 
 
+def _persistent_secret_key(instance_path):
+    key_path = Path(instance_path) / ".secret_key"
+    key_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        descriptor = os.open(
+            key_path,
+            os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+            0o600,
+        )
+    except FileExistsError:
+        pass
+    else:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as key_file:
+            key_file.write(secrets.token_hex(32))
+
+    for _ in range(100):
+        key = key_path.read_text(encoding="utf-8").strip()
+        if key:
+            return key
+        time.sleep(0.01)
+    raise RuntimeError(f"Could not load a persistent secret key from {key_path}")
+
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-me"),
+        SECRET_KEY=os.environ.get("SECRET_KEY"),
+        PERMANENT_SESSION_LIFETIME=timedelta(minutes=15),
+        MAX_CONTENT_LENGTH=16 * 1024,
         DATABASE=os.environ.get(
             "DATABASE_PATH",
             str(Path(app.instance_path) / "bloodbank.db"),
@@ -20,6 +47,11 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.update(test_config)
+
+    if not app.config.get("SECRET_KEY"):
+        app.config["SECRET_KEY"] = _persistent_secret_key(
+            Path(app.config["DATABASE"]).parent
+        )
 
     Path(app.config["DATABASE"]).parent.mkdir(
         parents=True,
@@ -69,6 +101,14 @@ def create_app(test_config=None):
             heading="Page not found",
             message="We could not find that page. Please use the menu above.",
         ), 404
+
+    @app.errorhandler(413)
+    def request_too_large(_e):
+        return render_template(
+            "error.html",
+            heading="Request too large",
+            message="The submitted information is too large. Please shorten it and try again.",
+        ), 413
 
     @app.errorhandler(500)
     def server_error(_e):
