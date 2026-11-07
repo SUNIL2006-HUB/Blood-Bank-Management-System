@@ -8,6 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir Flask gunicorn
 
 COPY app ./app
+COPY scripts ./scripts
 
 # run as a non-root user; /data holds the SQLite file (mount a volume here)
 RUN useradd --create-home appuser && mkdir /data && chown appuser /data

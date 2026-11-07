@@ -28,7 +28,7 @@ def main():
         print("Error: Invalid role.")
         return 1
 
-    password = getpass.getpass("Enter password (minimum 12 characters): ")
+    password = getpass.getpass("Enter password (minimum 8 characters): ")
     confirm_password = getpass.getpass("Confirm password: ")
 
     if len(password) < 8:

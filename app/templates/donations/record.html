@@ -19,11 +19,17 @@
 
 <form method="post" novalidate>
   <label for="donor_id">Donor</label>
+  <label for="donor_search">Search donors</label>
+  <input id="donor_search" type="search" autocomplete="off"
+         placeholder="Type a name, donor ID, blood group, or phone number"
+         aria-controls="donor_id" aria-describedby="donor_search_status">
+  <p id="donor_search_status" class="hint" role="status" aria-live="polite" hidden></p>
   <select id="donor_id" name="donor_id" required
           {% if errors.get('donor_id') %}aria-invalid="true" aria-describedby="donor_id-error"{% endif %}>
     <option value="">-- select donor --</option>
     {% for d in donors %}
-      <option value="{{ d.id }}" {{ 'selected' if form.get('donor_id') == d.id|string }}>#{{ d.id }} – {{ d.name }} ({{ d.blood_group }})</option>
+      <option value="{{ d.id }}" data-search="{{ d.id }} {{ d.name }} {{ d.blood_group }} {{ d.phone }}"
+              {{ 'selected' if form.get('donor_id') == d.id|string }}>#{{ d.id }} – {{ d.name }} ({{ d.blood_group }})</option>
     {% endfor %}
   </select>
   {{ err('donor_id') }}
@@ -55,4 +61,26 @@
 
   <button type="submit" {% if not donors %}disabled{% endif %}>Record donation</button>
 </form>
+<script>
+  const donorSearch = document.getElementById("donor_search");
+  const donorSelect = document.getElementById("donor_id");
+  const donorSearchStatus = document.getElementById("donor_search_status");
+  const donorOptions = Array.from(donorSelect.options).slice(1);
+
+  donorSearch.addEventListener("input", () => {
+    const query = donorSearch.value.trim().toLocaleLowerCase();
+    let visibleCount = 0;
+
+    donorOptions.forEach((option) => {
+      option.hidden = !option.dataset.search.toLocaleLowerCase().includes(query);
+      if (!option.hidden) visibleCount += 1;
+    });
+
+    if (donorSelect.selectedOptions[0]?.hidden) donorSelect.value = "";
+    donorSearchStatus.hidden = query.length === 0;
+    donorSearchStatus.textContent = query
+      ? `${visibleCount} donor${visibleCount === 1 ? "" : "s"} found. Select a donor from the list.`
+      : "";
+  });
+</script>
 {% endblock %}

@@ -41,6 +41,33 @@ def test_it01_registered_donor_is_listed(client, valid_donor):
     assert b"Ramesh Kumar" in page and b"9876543210" in page
 
 
+def test_st01_new_donor_is_selectable_for_donation(client, db, valid_donor):
+    post(client, valid_donor)
+    donor_id = db.execute(
+        "SELECT id FROM donor WHERE phone = ?",
+        (valid_donor["phone"],),
+    ).fetchone()["id"]
+
+    response = client.get("/donations/new")
+
+    assert response.status_code == 200
+    assert f'<option value="{donor_id}"'.encode() in response.data
+    assert b"Ramesh Kumar (O+)" in response.data
+
+
+def test_donation_form_has_searchable_donor_selector(client, db, valid_donor):
+    post(client, valid_donor)
+
+    response = client.get("/donations/new")
+
+    assert response.status_code == 200
+    assert b'id="donor_search" type="search"' in response.data
+    assert b"Type a name, donor ID, blood group, or phone number" in response.data
+    assert b'data-search="1 Ramesh Kumar O+ 9876543210"' in response.data
+    assert b"donorOptions.forEach" in response.data
+    assert b"donorSearchStatus.textContent" in response.data
+
+
 def test_it02_duplicate_phone_rejected(client, db, valid_donor):
     post(client, valid_donor)
     r = post(client, {**valid_donor, "name": "Someone Else"})

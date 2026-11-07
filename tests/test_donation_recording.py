@@ -101,3 +101,6 @@ def test_st01_register_donate_then_stock_visible(client, db, donor_id):
     donate(client, donor_id)
     assert stock(db, "O+") == 350
     assert b"350" in client.get("/donations").data
+    assert b"<td>O+</td><td>350</td>" in client.get(
+        "/availability?blood_group=O%2B"
+    ).data

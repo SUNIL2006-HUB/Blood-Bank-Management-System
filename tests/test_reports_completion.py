@@ -58,6 +58,14 @@ def test_issue_and_combined_reports_include_issued_transaction(app, client, db):
     create_activity(client, db)
     manager = create_manager(app, db)
 
+    donation_response = manager.post(
+        "/reports",
+        data={"report_type": "donation"},
+    )
+    assert donation_response.status_code == 200
+    assert b"Donation report" in donation_response.data
+    assert b"<td>100</td>" in donation_response.data
+
     issue_response = manager.post("/reports", data={"report_type": "issue"})
     assert issue_response.status_code == 200
     assert b"Issue report" in issue_response.data
