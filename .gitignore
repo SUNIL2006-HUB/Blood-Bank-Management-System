@@ -4,6 +4,8 @@ __pycache__/
 .ruff_cache/
 instance/
 *.db
+*.backup
+*.pre-restore
 .env
 .secret_key
 venv/

@@ -1,9 +1,11 @@
 # Deviations from the Submitted Documents
 
-Blood Bank Management System — status after **Sprint-1** (PBI-01 to PBI-04).
+Blood Bank Management System — Sprint-1 baseline deviations, with current status below.
 Compared against the submitted SRS, Software Architecture (SAD), Use Case Flow, Security Requirements and Test Plan.
 
 Legend: **Added** = implemented but not in the documents · **Changed** = implemented differently from the documents · **Deferred** = in the documents, planned for Sprint-2.
+
+Rows describing deferred features record the Sprint-1 baseline before the later PBIs were completed; the current implementation status is summarized below.
 
 | # | Area | Documents say | Implementation | Type | Reason / plan |
 |---|------|---------------|----------------|------|---------------|
@@ -29,5 +31,16 @@ Legend: **Added** = implemented but not in the documents · **Changed** = implem
 | View/Search Availability | UT_01–UT_04, IT_02, IT_03, ST_01, ST_02 (IT_01 "hospital read-only access" needs login, so it is only checked as a read-only page) |
 | Issue Blood | UT_01–UT_04, IT_01–IT_03 (ST_01 needs reports, ST_02 needs login) |
 
-## To update in Sprint-2
-Re-check rows 2, 3 and 4 when PBI-05, PBI-06, PBI-07 and PBI-08 are merged, and add any new deviations.
+## Sprint-2 and Sprint-3 update
+
+The Sprint-1 deferrals above have since been implemented across the merged PBIs:
+
+- **Accounts and roles (PBI-09):** staff, recipient, and management login; role-restricted routes and navigation; account signup and management.
+- **Reports (PBI-05 and PBI-11):** management-only donation, issue, combined activity, and current availability reports, with date filtering and CSV export.
+- **Security (PBI-10):** login throttling, inactivity timeout, audit logging, server-side validation, and session revalidation.
+- **Persistence and operations (PBI-12):** transactional numbered migrations, preserved existing records, SQLite backup/restore commands, an explicit idempotent demo seed, and documented Docker volume operations.
+
+The original Test Plan has 44 cases. Its execution record and mapping to the automated suite are
+maintained in [`docs/TEST_PLAN_EXECUTION.md`](docs/TEST_PLAN_EXECUTION.md). The Test Plan still
+describes the original manual flows; automated coverage supplements rather than replaces those
+requirements.

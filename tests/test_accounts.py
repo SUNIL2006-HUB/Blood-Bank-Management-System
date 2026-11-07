@@ -186,8 +186,37 @@ def test_database_initialization_adds_account_fields_without_losing_users(tmp_pa
         """
     )
     old_db.execute(
+        """
+        CREATE TABLE donor (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            age INTEGER NOT NULL,
+            blood_group TEXT NOT NULL,
+            phone TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    old_db.execute(
+        """
+        CREATE TABLE blood_stock (
+            blood_group TEXT PRIMARY KEY,
+            quantity_ml INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    old_db.execute(
         "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
         ("existing_staff", generate_password_hash("ExistingPassword123!"), "staff"),
+    )
+    old_db.execute(
+        "INSERT INTO donor (name, age, blood_group, phone) VALUES (?, ?, ?, ?)",
+        ("Existing donor", 28, "O+", "9123456789"),
+    )
+    old_db.execute(
+        "INSERT INTO blood_stock (blood_group, quantity_ml) VALUES (?, ?)",
+        ("O+", 750),
     )
     old_db.commit()
     old_db.close()
@@ -198,6 +227,14 @@ def test_database_initialization_adds_account_fields_without_losing_users(tmp_pa
     try:
         user = upgraded_db.execute(
             "SELECT username, role, disabled, must_change_password FROM users"
+        ).fetchone()
+        donor = upgraded_db.execute(
+            "SELECT name FROM donor WHERE phone = ?",
+            ("9123456789",),
+        ).fetchone()
+        stock = upgraded_db.execute(
+            "SELECT quantity_ml FROM blood_stock WHERE blood_group = ?",
+            ("O+",),
         ).fetchone()
         columns = {
             row["name"] for row in upgraded_db.execute("PRAGMA table_info(users)")
@@ -215,8 +252,10 @@ def test_database_initialization_adds_account_fields_without_losing_users(tmp_pa
     assert user["role"] == "staff"
     assert user["disabled"] == 0
     assert user["must_change_password"] == 0
+    assert donor["name"] == "Existing donor"
+    assert stock["quantity_ml"] == 750
     assert {"disabled", "must_change_password"}.issubset(columns)
-    assert versions == [1, 2, 3]
+    assert versions == [1, 2, 3, 4]
     assert {"email", "email_verified"}.issubset(columns)
 
 

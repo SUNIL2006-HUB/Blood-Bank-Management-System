@@ -41,6 +41,7 @@ python -m pytest
 | PBI-09 | User Accounts & Role-Based Access | `/auth/login`, `/auth/setup`, `/users` |
 | PBI-10 | Security Hardening & Input Safety | Login throttling, session expiry, audit logging, strict input validation |
 | PBI-11 | Reporting Completion | Donation, issue, combined activity, availability, and CSV reports |
+| PBI-12 | Data Persistence, Demo Data & Quality | Versioned migrations, database backup/restore, repeatable demo seed, and Docker volume operations |
 
 Donation, issue, and combined reports accept optional start and end dates; leaving both blank
 includes all activity. Reports can be viewed in the browser or downloaded as CSV, and exclude
@@ -50,3 +51,34 @@ generation.
 
 Login offers User, Staff, and Management account types; each role has access only to its permitted
 pages. Newly created accounts must change their temporary password at first login.
+
+## Database operations
+
+The SQLite database defaults to `instance/bloodbank.db`; set `DATABASE_PATH` to choose another
+path. On every app startup, the versioned migrations run transactionally and preserve existing
+records. The migration history is stored in `schema_migrations`.
+
+For backup, restore, demo-data seeding, and Docker volume instructions, see
+[`docs/OPERATIONS.md`](docs/OPERATIONS.md). In brief:
+
+```powershell
+python scripts\manage_db.py backup .\instance\before-upgrade.backup
+python scripts\manage_db.py restore .\instance\before-upgrade.backup --yes
+python scripts\manage_db.py seed-demo
+```
+
+Demo data is never created automatically. The seed command prompts for a password and creates 25
+donors, donations, issues, stock for all eight blood groups, and three demo accounts. The seed is
+transactional and repeatable; demo accounts require a password change at first login.
+
+## Verification
+
+Run the automated suite and linter from the repository root:
+
+```powershell
+python -m pytest
+ruff check .
+```
+
+The Sprint test-plan execution record and case-to-test mapping are in
+[`docs/TEST_PLAN_EXECUTION.md`](docs/TEST_PLAN_EXECUTION.md).
