@@ -35,6 +35,8 @@ def test_login_page_has_no_operational_menu_or_hours(anonymous_client):
     assert 'value="staff"' in page and ">Staff</option>" in page
     assert 'value="management"' in page and ">Management</option>" in page
     assert "Operating hours" not in page
+    assert "Open now" not in page
+    assert "Closed now" not in page
     assert "Register donor" not in page
     assert "Availability" not in page
 
@@ -108,6 +110,11 @@ def test_role_routes_and_navigation_are_restricted(app, db):
 
     staff = app.test_client()
     login(staff, TEST_USERNAME, "staff", TEST_PASSWORD)
+    staff_home = staff.get("/")
+    assert staff_home.status_code == 200
+    assert b"Operating hours" not in staff_home.data
+    assert b"Open now" not in staff_home.data
+    assert b"Closed now" not in staff_home.data
     assert staff.get("/reports").status_code == 403
     assert staff.get("/users").status_code == 403
     assert staff.get("/donors").status_code == 200
