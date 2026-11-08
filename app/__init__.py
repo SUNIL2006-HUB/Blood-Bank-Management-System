@@ -1,7 +1,7 @@
 import os
 import secrets
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 
 from flask import Flask, render_template
@@ -77,18 +77,6 @@ def create_app(test_config=None):
     @roles_required("staff")
     def index():
         return render_template("index.html")
-
-    @app.context_processor
-    def inject_operating_hours():
-        from .constants import OPERATING_CLOSE, OPERATING_OPEN
-
-        now = datetime.now().time()
-
-        return {
-            "is_open": OPERATING_OPEN <= now < OPERATING_CLOSE,
-            "open_time": OPERATING_OPEN.strftime("%I:%M %p").lstrip("0"),
-            "close_time": OPERATING_CLOSE.strftime("%I:%M %p").lstrip("0"),
-        }
 
     @app.errorhandler(403)
     def access_denied(_e):
